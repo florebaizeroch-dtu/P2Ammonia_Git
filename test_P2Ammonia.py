@@ -60,8 +60,8 @@ hpp = hpp_model(
 # Type of Analysis 
 # -------------------------------------------------------
 #type_analysis = 'sensitivity_analysis'
-#type_analysis = 'evaluation' 
-type_analysis = 'sizing'
+type_analysis = 'evaluation' 
+#type_analysis = 'sizing'
 
 # -------------------------------------------------------
 # Operation parameters
