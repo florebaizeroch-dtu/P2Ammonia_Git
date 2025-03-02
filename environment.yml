@@ -4,5 +4,5 @@ channels:
 dependencies:
   - python=3.9
   - pip
-  - smt
+  - smt=2.6
 

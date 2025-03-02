@@ -1,0 +1,112 @@
+Sizing a HPP plant at Denmark_good_wind:
+
+
+Fixed parameters on the site
+-------------------------------
+longitude = 8.594398
+latitude = 56.227322
+altitude = 85.0
+
+
+
+Initial 48 simulations took 11.17 minutes
+  Current solution -NPV_over_CAPEX = -1.461E+00
+  Current No. model evals: 48
+
+Update sm and extract candidate points took 0.18 minutes
+Check-optimal candidates: new 14 simulations took 3.67 minutes
+  Current solution -NPV_over_CAPEX = -1.469E+00
+  Current No. model evals: 62
+  rel_yopt_change = -5.72E-03
+Iteration 1 took 3.91 minutes
+
+Update sm and extract candidate points took 0.14 minutes
+Check-optimal candidates: new 14 simulations took 3.64 minutes
+  Current solution -NPV_over_CAPEX = -1.478E+00
+  Current No. model evals: 76
+  rel_yopt_change = -6.06E-03
+Iteration 2 took 3.86 minutes
+
+Update sm and extract candidate points took 0.14 minutes
+Check-optimal candidates: new 14 simulations took 3.65 minutes
+  Current solution -NPV_over_CAPEX = -1.479E+00
+  Current No. model evals: 90
+  rel_yopt_change = -6.07E-04
+Iteration 3 took 3.88 minutes
+
+C:\Users\Flore\AppData\Local\Programs\Python\Python310\lib\site-packages\smt\surrogate_models\krg_based.py:968: UserWarning: R is too ill conditioned. Poor combination of regression model and observations.
+  warnings.warn(
+Update sm and extract candidate points took 0.15 minutes
+Check-optimal candidates: new 14 simulations took 3.95 minutes
+  Current solution -NPV_over_CAPEX = -1.479E+00
+  Current No. model evals: 102
+  rel_yopt_change = -0.00E+00
+Iteration 4 took 4.24 minutes
+
+C:\Users\Flore\AppData\Local\Programs\Python\Python310\lib\site-packages\smt\surrogate_models\krg_based.py:968: UserWarning: R is too ill conditioned. Poor combination of regression model and observations.
+  warnings.warn(
+Update sm and extract candidate points took 0.15 minutes
+Check-optimal candidates: new 13 simulations took 3.47 minutes
+  Current solution -NPV_over_CAPEX = -1.479E+00
+  Current No. model evals: 114
+  rel_yopt_change = -0.00E+00
+Iteration 5 took 3.77 minutes
+
+Surrogate based optimization is converged.
+
+Design:
+---------------
+clearance [m]: 10.000
+sp [W/m2]: 360.000
+p_rated [MW]: 4.000
+Nwt: 90.000
+wind_MW_per_km2 [MW/km2]: 5.000
+solar_MW [MW]: 80.000
+surface_tilt [deg]: 50.000
+surface_azimuth [deg]: 210.000
+DC_AC_ratio: 1.500
+b_P [MW]: 16.000
+b_E_h [h]: 5.000
+cost_of_battery_P_fluct_in_peak_price_ratio: 0.000
+ptg_MW [MW]: 34.000
+HSS_kg [kg]: 0.000
+NH3SS [kg]: 0.000
+
+
+NPV_over_CAPEX: 1.479
+NPV [MEuro]: 699.678
+IRR: 0.150
+LCOE [Euro/MWh]: 27.643
+LCOH [Euro/kg]: 1000000.000
+LCONH3 [Euro/kg]: 1.105
+Revenue [MEuro]: 1723.550
+CAPEX [MEuro]: 473.136
+OPEX [MEuro]: 14.188
+penalty lifetime [MEuro]: 0.201
+AEP [GWh]: 1005.742
+GUF: 0.383
+annual_H2 [tons]: 0.000
+annual_NH3 [tons]: 35392.664
+annual_Q [MW]: 26717.991
+annual_P_ptg [GWh]: 267.679
+grid [MW]: 300.000
+wind [MW]: 360.000
+solar [MW]: 80.000
+PtG [MW]: 34.000
+HSS [kg]: 0.000
+NH3 [TDP]: 138.720
+NH3SS [kg]: 0.000
+Battery Energy [MWh]: 80.000
+Battery Power [MW]: 16.000
+Annual curtailment [GWh]: 18.096
+Awpp [km2]: 72.000
+Apvp [km2]: 0.981
+Rotor diam [m]: 118.942
+Hub height [m]: 69.471
+Number of batteries used in lifetime: 1.000
+Break-even H2 price [Euro/kg]: 4.000
+Break-even NH3 price [Euro/kg]: -0.075
+Break-even PPA price [Euro/MWh]: 2.753
+Capacity factor wind [-]: 0.391
+
+Optimization with 5 iterations and 114 model evaluations took 31.65 minutes

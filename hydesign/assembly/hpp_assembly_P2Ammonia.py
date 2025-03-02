@@ -323,7 +323,7 @@ class hpp_model_P2Ammonia(hpp_base):
                               'annual_Q',
                               'annual_curtailment',
                               # 'annual_P_ptg_H2',
-                              'penalty_lifetime',
+                              'annual_penalty',
                               'CAPEX',
                               'OPEX',
                               'break_even_H2_price',
@@ -537,7 +537,7 @@ class hpp_model_P2Ammonia(hpp_base):
         prob['Revenue'] : Revenue of HPP
         prob['CAPEX'] : Total capital expenditure costs of the HPP
         prob['OPEX'] : Operational and maintenance costs of the HPP
-        prob['penalty_lifetime'] : Lifetime penalty
+        prob['annual_penalty'] : Lifetime penalty
         prob['AEP']: Annual energy production injected to the grid
         prob['mean_AEP']/(self.sim_pars['G_MW']*365*24) : Grid utilization factor
         prob['annual_H2']: Annual H2 production
@@ -582,7 +582,8 @@ class hpp_model_P2Ammonia(hpp_base):
         prob.set_val('solar_MW', solar_MW)
         prob.set_val('ptg_MW', ptg_MW)
         prob.set_val('HSS_kg', HSS_kg)
-        NH3_tpd = 4.08 * ptg_MW * self.eta_H2    
+        NH3_tpd = 4.08 * ptg_MW * self.eta_H2 
+        #NH3_tpd = 0   
         prob.set_val('NH3_tpd', NH3_tpd)
         prob.set_val('NH3SS_kg', NH3SS_kg)        
         prob.set_val('b_P', b_P)
@@ -608,7 +609,7 @@ class hpp_model_P2Ammonia(hpp_base):
             prob['Revenue']/1e6,
             prob['CAPEX']/1e6,
             prob['OPEX']/1e6,
-            prob['penalty_lifetime']/1e6,
+            prob['annual_penalty']/1e6,
             prob['mean_AEP']/1e3, #[GWh]
             # prob['mean_Power2Grid']/1e3, #GWh
             # Grid Utilization factor

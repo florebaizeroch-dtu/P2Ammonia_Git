@@ -4,6 +4,7 @@ import yaml
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import hydesign
 from hydesign.Parallel_EGO import EfficientGlobalOptimizationDriver
 from hydesign.assembly.hpp_assembly_P2Ammonia import hpp_model_P2Ammonia as hpp_model
 from hydesign.Parallel_EGO import EfficientGlobalOptimizationDriver
@@ -30,7 +31,7 @@ H2_demand_data['H2_demand'] = 100_000
 H2_demand_data.to_csv(H2_demand_fn)
 
 NH3_demand_data = pd.read_csv(NH3_demand_fn, header=0, index_col=0, parse_dates=True)
-NH3_demand_data['NH3_demand'] = 17_850
+NH3_demand_data['NH3_demand'] = 4_500
 NH3_demand_data.to_csv(NH3_demand_fn)
 
 # -----------------------------------------------------------
@@ -45,6 +46,7 @@ with open(sim_pars_fn) as file:
 
 # Initialize the Hybrid Power Plant (HPP) model
 batch_size = 15 * 24
+
 hpp = hpp_model(
     sim_pars_fn=sim_pars_fn,  # Simulation parameters
     H2_demand_fn= H2_demand_fn, 
@@ -83,9 +85,9 @@ b_P = 0
 b_E_h = 0
 cost_of_batt_degr = 0
     #PtG plant design
-ptg_MW = 150
+ptg_MW = 35
     #Hydrogen storage design 
-HSS_kg = 0
+HSS_kg = 1000
     #Ammonia storage design 
 NH3SS_kg = 0
 
@@ -127,19 +129,17 @@ if type_analysis  == 'evaluation':
 
 elif type_analysis =='sensitivity_analysis':
     start = time.time()
-    param_name = 'H2SS_kg'
-    param_list = np.linspace(3_600, 36_000, 10)
+    param_name = 'ptg_MW'
+    param_list = np.linspace(0, 500, 10)
     dict = {'NPV' : [], 'NPV_over_CAPEX': [],  'IRR' : [], 'AH2P' : [], 'AEP' : [], 'ANH3P' : [], 'Curtail' : []}
-    #hpp.prob.set_val('price_H2', 0)
-    
     for param in param_list:
         print(f'{param_name} : {param} ')
         #hpp.prob.set_val(param_name, param)
-        HSS_kg = param
+        ptg_MW = param
         x_update =[clearance, sp, p_rated, Nwt, wind_MW_per_km2,
                     solar_MW, surface_tilt, surface_azimuth,
                     DC_AC_ratio, b_P, b_E_h, cost_of_batt_degr,
-                    ptg_MW,HSS_kg, NH3SS_kg
+                    ptg_MW, HSS_kg, NH3SS_kg
                     ]
  
         outs = hpp.evaluate(*x_update)  # Run the model evaluation
@@ -149,7 +149,7 @@ elif type_analysis =='sensitivity_analysis':
         dict['AH2P'].append(outs[12])
         dict['ANH3P'].append(outs[13])
         dict['AEP'].append(outs[10])
-        dict['Curtail'].append(outs[24])
+        dict['Curtail'].append(outs[25])
     end = time.time()
 
     print(f'Execution time [min]:', round((end - start) / 60, 2))

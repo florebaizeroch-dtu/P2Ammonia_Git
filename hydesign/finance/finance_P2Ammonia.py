@@ -237,8 +237,8 @@ class finance_P2Ammonia(om.ExplicitComponent):
         self.add_output('annual_curtailment',
                         desc='Annual power curtailment')
         
-        self.add_output('penalty_lifetime',
-                        desc="penalty_lifetime")
+        self.add_output('annual_penalty',
+                        desc="annual_penalty")
         
         self.add_output('break_even_H2_price',
                         desc='price of hydrogen that results in NPV=0 with the given hybrid power plant configuration and operation',
@@ -437,7 +437,7 @@ class finance_P2Ammonia(om.ExplicitComponent):
         level_P_ptg = np.sum(P_ptg_per_year / (1 + hpp_discount_factor_LCOE)**iy)
         P_curtail_per_year = df.groupby('i_year').hpp_curt_t.mean()*365*24
         level_P_curtail= np.sum(P_curtail_per_year / (1+ hpp_discount_factor_LCOE)**iy)
-        mean_P_curtail_per_year = np.mean(level_P_curtail)
+        mean_P_curtail_per_year = np.mean(P_curtail_per_year)
         
         # Power2Grid_per_year = df.groupby('i_year').hpp_t.mean()*365*24
         # mean_Power2Grid_per_year = np.mean(Power2Grid_per_year)
@@ -468,11 +468,13 @@ class finance_P2Ammonia(om.ExplicitComponent):
         AHP_per_year = df.groupby('i_year').m_H2_offtake_t.mean()*365*24
         ANH3P_per_year = df.groupby('i_year').m_NH3_offtake_t.mean()*365*24
         AQP_per_year = df.groupby('i_year').Q_t.mean()*365*24
+        penalty_per_year = df.groupby('i_year').penalty_t.mean()*365*24
         level_AHP = np.sum(AHP_per_year / (1 + hpp_discount_factor_H2)**iy)
         level_ANH3P = np.sum(ANH3P_per_year / (1 + hpp_discount_factor_NH3)**iy)
         mean_AHP_per_year = np.mean(AHP_per_year)
         mean_ANH3P_per_year = np.mean(ANH3P_per_year)
         mean_AQP_per_year = np.mean(AQP_per_year)
+        mean_penalty_per_year = np.mean(penalty_per_year)
 
         if level_AHP > 0:
             outputs['LCOH'] = level_costs_H2 / (level_AHP) # in Euro/kg
@@ -536,7 +538,7 @@ class finance_P2Ammonia(om.ExplicitComponent):
         outputs['annual_NH3'] = mean_ANH3P_per_year
         outputs['annual_Q'] = mean_AQP_per_year
         outputs['annual_curtailment'] = mean_P_curtail_per_year
-        outputs['penalty_lifetime'] = df['penalty_t'].sum()
+        outputs['annual_penalty'] = mean_penalty_per_year
         outputs['break_even_H2_price'] = break_even_H2_price
         outputs['break_even_NH3_price'] = break_even_NH3_price
         outputs['break_even_PPA_price'] = break_even_PPA_price

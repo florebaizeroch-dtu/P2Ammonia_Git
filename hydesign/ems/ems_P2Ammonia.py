@@ -808,7 +808,7 @@ def ems_cplex_parts_P2Ammonia(
     m_NH3_offtake_t = mdl.continuous_var_dict(time, lb=0, name ='Ammonia offtake')
     LoS_NH3_t = mdl.continuous_var_dict(SOCtime, lb=0, name='Ammonia storage level')
     Q_t = mdl.continuous_var_dict(time,lb=0, name = 'Heat production')
-    #penalty = mdl.continuous_var(name='penalty', lb=-1e12)
+    penalty_t = mdl.continuous_var_dict(time, name='penalty', lb=-1e12)
     #e_penalty = mdl.continuous_var(name='e_penalty', lb=-1e12)
     
     # Piecewise function for "absolute value" function
@@ -819,8 +819,6 @@ def ems_cplex_parts_P2Ammonia(
     # Piecewise function for "only positive" function
     f1 = mdl.piecewise(0, [(0,0)], 1)
     
-#    mdl.add_constraint( penalty == price_peak*f1(e_penalty) + \
-#                      mdl.sum(penalty_factor_H2*(m_H2_demand_ts[t] - m_H2_offtake_t[t]) + penalty_factor_NH3*(m_NH3_demand_ts[t] - m_NH3_offtake_t[t]) for t in time) )
     #mdl.add_constraint( penalty == price_peak*f1(e_penalty))
 
     # Intitial and end SOC
@@ -893,7 +891,7 @@ def ems_cplex_parts_P2Ammonia(
         # Hydrogen storgae equation
         mdl.add_constraint(LoS_H2_t[tt] == LoS_H2_t[t] + f3(m_H2_t[t] - m_H2_offtake_t[t] - m_H2_to_NH3_t[t]))
         
-        # Ammonia storgae equation
+        # Ammonia storage equation
         mdl.add_constraint(LoS_NH3_t[tt] == LoS_NH3_t[t] + f6(m_NH3_t[t] - m_NH3_offtake_t[t]))
 
         # Constraining battery energy level to minimum battery level
@@ -915,7 +913,9 @@ def ems_cplex_parts_P2Ammonia(
         mdl.add_constraint( m_NH3_offtake_t[t] <= m_NH3_demand_ts[t])
         mdl.add_constraint( m_NH3_t[t] <= NH3_tpd_ts[t] * 1e3 / (24))
      
-     
+        # Penalty for not meeting the H2 and NH3 demand
+        mdl.add_constraint( penalty_t[t] == penalty_factor_H2*(m_H2_demand_ts[t] - m_H2_offtake_t[t]) + penalty_factor_NH3*(m_NH3_demand_ts[t] - m_NH3_offtake_t[t]))
+
         # constraint to maintain standby power when electrolyzer is not producing H2
         # Big M method to define the mode of operation of electrolyzer, M = 1e5
         # mdl.add_constraint(P_ptg_t[t] <= 1e5*(1-y_t[t]))
@@ -968,12 +968,7 @@ def ems_cplex_parts_P2Ammonia(
     LoS_NH3_ts_df = pd.DataFrame.from_dict(sol.get_value_dict(LoS_NH3_t), orient='index').loc[:,0]
     m_NH3_offtake_ts_df = pd.DataFrame.from_dict(sol.get_value_dict(m_NH3_offtake_t), orient='index').loc[:,0]
     Q_ts_df = pd.DataFrame.from_dict(sol.get_value_dict(Q_t), orient='index').loc[:,0]
-
-
-    #make a time series like P_HPP with a constant penalty 
-    #penalty_2 = sol.get_value(penalty)
-    #penalty_ts = np.ones(N_t) * (penalty_2/N_t)
-    penalty_ts_df = pd.Series(0, index = P_HPP_ts_df.index)
+    penalty_ts_df = pd.DataFrame.from_dict(sol.get_value_dict(penalty_t), orient ='index').loc[:,0]
     mdl.end()
     
 
