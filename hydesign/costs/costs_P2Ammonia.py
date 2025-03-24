@@ -499,22 +499,22 @@ class ptg_cost(om.ExplicitComponent):
 
         super().__init__()
         if ptg_type == 'HTP-AEC electrolyzer':
-            self.electrolyzer_capex_cost = HTP_AEC_capex_cost
+            self.electrolyzer_capex_cost = HTP_AEC_capex_cost 
             self.electrolyzer_opex_cost = HTP_AEC_opex_cost
         elif ptg_type == 'LTP-AEC electrolyzer':
             self.electrolyzer_capex_cost = LTP_AEC_capex_cost
             self.electrolyzer_opex_cost = LTP_AEC_opex_cost
         elif ptg_type == 'Alkaline electrolyzer':
-            self.electrolyzer_capex_cost = AEC_capex_cost
+            self.electrolyzer_capex_cost = AEC_capex_cost 
             self.electrolyzer_opex_cost = AEC_opex_cost
         elif ptg_type == 'PEM electrolyzer':
-            self.electrolyzer_capex_cost = PEM_capex_cost
+            self.electrolyzer_capex_cost = PEM_capex_cost 
             self.electrolyzer_opex_cost = PEM_opex_cost
         elif ptg_type == 'LP-SOEC-WFS electrolyzer':
             self.electrolyzer_capex_cost = LP_SOEC_capex_cost
             self.electrolyzer_opex_cost = LP_SOEC_opex_cost
         elif ptg_type == 'HP-SOEC-WFS electrolyzer':
-            self.electrolyzer_capex_cost = HP_SOEC_capex_cost
+            self.electrolyzer_capex_cost = HP_SOEC_capex_cost 
             self.electrolyzer_opex_cost = HP_SOEC_opex_cost
         else : 
             raise ValueError(f'The type of electrolyzer is {ptg_type}, it should be one of the following types : ["Alkaline electrolyzer", "HTP-AEC electrolyzer", "PEM electrolyzer", "HP-SOEC-WFS electrolyzer", "LP-SOEC-WFS electrolyzer"]')
@@ -585,8 +585,14 @@ class NH3_cost(om.ExplicitComponent):
     the cost of Haber-Bosh system to produce Asmmonia from Hydrogen and Nitrogen, as well as the cost of storage of ammonia.
     """
     def __init__(self,
+                 ptg_type,
                  NH3_HB_capex_cost,
                  NH3_HB_opex_cost,
+                 LTP_AEC_add_costs,
+                 HTP_AEC_add_costs,
+                 PEM_add_costs,
+                 LP_SOEC_add_costs,
+                 HP_SOEC_add_costs,
                  ASU_capex_cost,
                  NH3_storage_capex_cost,
                  N_time,
@@ -595,7 +601,18 @@ class NH3_cost(om.ExplicitComponent):
                  ):
 
         super().__init__()
-        self.NH3_HB_capex_cost = NH3_HB_capex_cost
+        add_cost = 0
+        if ptg_type == 'LTP-AEC electrolyzer':
+            add_cost = LTP_AEC_add_costs
+        elif ptg_type == 'HTP-AEC electrolyzer':
+            add_cost = HTP_AEC_add_costs
+        elif ptg_type == 'PEM electrolyzer':
+            add_cost = PEM_add_costs
+        elif ptg_type == 'LP-SOEC electrolyzer':
+            add_cost = LP_SOEC_add_costs
+        elif ptg_type == 'HP-SOEC electrolyzer':
+            add_cost = HP_SOEC_add_costs
+        self.NH3_HB_capex_cost = NH3_HB_capex_cost + add_cost
         self.NH3_HB_opex_cost = NH3_HB_opex_cost
         self.ASU_capex_cost = ASU_capex_cost
         self.NH3_storage_capex_cost = NH3_storage_capex_cost

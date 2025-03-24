@@ -96,6 +96,7 @@ class ems_P2Ammonia(om.ExplicitComponent):
         ems_type='cplex',
         load_min_penalty_factor=1e6,
         electrolyzer_eff_curve_type='production',
+        ptg_type = 'AEC'
         ):
 
         super().__init__()
@@ -107,7 +108,7 @@ class ems_P2Ammonia(om.ExplicitComponent):
         self.life_intervals = self.life_h * intervals_per_hour
         self.load_min_penalty_factor = load_min_penalty_factor
         self.electrolyzer_eff_curve_type = electrolyzer_eff_curve_type
-
+        self.ptg_type = ptg_type
     def setup(self):
         self.add_input(
             'wind_t',
@@ -227,7 +228,21 @@ class ems_P2Ammonia(om.ExplicitComponent):
         self.add_input(
             'min_power_standby',
             desc="Minimum percentage of rated electrolyzer power required to operate in standby mode")
-        
+        self.add_input(
+            'LTP_AEC_add_power',
+            desc="Add. Power for LTP-AEC techno")
+        self.add_input(
+            'HTP_AEC_add_power',
+            desc="Add. Power for HTP-AEC techno")
+        self.add_input(
+            'PEM_add_power',
+            desc="Add. Power for PEM techno")
+        self.add_input(
+            'LP_SOEC_add_power',
+            desc="Add. Power for LP-SOEC techno")
+        self.add_input(
+            'HP_SOEC_add_power',
+            desc="Add. Power for HP-SOEC techno")
         # ----------------------------------------------------------------------------------------------------------
         self.add_output(
             'wind_t_ext',
@@ -385,6 +400,11 @@ class ems_P2Ammonia(om.ExplicitComponent):
         ptg_deg = inputs['ptg_deg'][0]
         P_elec_NH3_kg = inputs['P_elec_NH3_kg'][0]
         P_elec_N2_kg = inputs['P_elec_N2_kg'][0]
+        LTP_AEC_add_power = inputs['LTP_AEC_add_power'][0]
+        HTP_AEC_add_power = inputs['HTP_AEC_add_power'][0]
+        PEM_add_power = inputs['PEM_add_power'][0]
+        LP_SOEC_add_power = inputs['LP_SOEC_add_power'][0]
+        HP_SOEC_add_power = inputs['HP_SOEC_add_power'][0]
         H2_storage_eff = inputs['H2_storage_eff'][0]
         NH3_storage_eff = inputs['NH3_storage_eff'][0]
         hhv_H2 = inputs['hhv_H2'][0]
@@ -395,6 +415,17 @@ class ems_P2Ammonia(om.ExplicitComponent):
         penalty_factor_NH3 = inputs['penalty_factor_NH3'][0]
         min_power_standby = inputs['min_power_standby'][0]
 
+        if self.ptg_type == 'HTP-AEC electrolyzer':
+            P_elec_NH3_kg += HTP_AEC_add_power 
+        elif self.ptg_type == 'LTP-AEC electrolyzer':
+            P_elec_NH3_kg += LTP_AEC_add_power 
+        elif self.ptg_type == 'PEM electrolyzer':
+            P_elec_NH3_kg += PEM_add_power 
+        elif self.ptg_type == 'LP-SOEC-WFS electrolyzer':
+            P_elec_NH3_kg += LP_SOEC_add_power 
+        elif self.ptg_type == 'HP-SOEC-WFS electrolyzer':
+            P_elec_NH3_kg += HP_SOEC_add_power 
+        
         # Build a sintetic time to avoid problems with time sereis 
         # indexing in ems
         WSPr_df = pd.DataFrame(
@@ -808,7 +839,6 @@ def ems_cplex_parts_P2Ammonia(
     m_NH3_offtake_t = mdl.continuous_var_dict(time, lb=0, name ='Ammonia offtake')
     LoS_NH3_t = mdl.continuous_var_dict(SOCtime, lb=0, name='Ammonia storage level')
     Q_t = mdl.continuous_var_dict(time,lb=0, name = 'Heat production')
-    penalty_t = mdl.continuous_var_dict(time, name='penalty', lb=-1e12)
     #e_penalty = mdl.continuous_var(name='e_penalty', lb=-1e12)
     
     # Piecewise function for "absolute value" function
@@ -882,6 +912,9 @@ def ems_cplex_parts_P2Ammonia(
         # Delta_t of 1 hour
         dt = 1
         
+        if E_batt_MWh_t[time[0]] == 0:
+            mdl.add_constraint(P_charge_discharge[t] == 0)
+
         # Only one variable for battery
         mdl.add_constraint(P_HPP_t[t] == wind_ts[t] + solar_ts[t] - P_curtailment_t[t] + P_charge_discharge[t] - P_ptg_t[t] - P_HB_t[t] - P_ASU_t[t] )
         
@@ -906,16 +939,13 @@ def ems_cplex_parts_P2Ammonia(
         
         # Constraining hydrogen offtake as per the demand time series and level of storage
         mdl.add_constraint(LoS_H2_t[t] <= H2_storage_t[t])
-        #mdl.add_constraint( m_H2_offtake_t[t] <= m_H2_demand_ts[t])
+        mdl.add_constraint( m_H2_offtake_t[t] <= m_H2_demand_ts[t])
 
         # Constraining ammonia offtake as per the demand time series and level of storage
         mdl.add_constraint(LoS_NH3_t[t] <= NH3_storage_t[t])
         mdl.add_constraint( m_NH3_offtake_t[t] <= m_NH3_demand_ts[t])
         mdl.add_constraint( m_NH3_t[t] <= NH3_tpd_ts[t] * 1e3 / (24))
      
-        # Penalty for not meeting the H2 and NH3 demand
-        mdl.add_constraint( penalty_t[t] == penalty_factor_H2*(m_H2_demand_ts[t] - m_H2_offtake_t[t]) + penalty_factor_NH3*(m_NH3_demand_ts[t] - m_NH3_offtake_t[t]))
-
         # constraint to maintain standby power when electrolyzer is not producing H2
         # Big M method to define the mode of operation of electrolyzer, M = 1e5
         # mdl.add_constraint(P_ptg_t[t] <= 1e5*(1-y_t[t]))
@@ -949,10 +979,9 @@ def ems_cplex_parts_P2Ammonia(
         log_output=False)
         #log_output=True)
 
-    
+   
     #print(mdl.export_to_string())
     #sol.display() 
-
     P_HPP_ts_df = pd.DataFrame.from_dict(sol.get_value_dict(P_HPP_t), orient='index').loc[:,0]
     P_curtailment_ts_df = pd.DataFrame.from_dict(sol.get_value_dict(P_curtailment_t), orient='index').loc[:,0]
     P_charge_discharge_ts_df = pd.DataFrame.from_dict(sol.get_value_dict(P_charge_discharge), orient='index').loc[:,0]
@@ -968,7 +997,8 @@ def ems_cplex_parts_P2Ammonia(
     LoS_NH3_ts_df = pd.DataFrame.from_dict(sol.get_value_dict(LoS_NH3_t), orient='index').loc[:,0]
     m_NH3_offtake_ts_df = pd.DataFrame.from_dict(sol.get_value_dict(m_NH3_offtake_t), orient='index').loc[:,0]
     Q_ts_df = pd.DataFrame.from_dict(sol.get_value_dict(Q_t), orient='index').loc[:,0]
-    penalty_ts_df = pd.DataFrame.from_dict(sol.get_value_dict(penalty_t), orient ='index').loc[:,0]
+    penalty_ts_df = penalty_factor_NH3 *(m_NH3_demand_ts - m_NH3_offtake_ts_df) + penalty_factor_H2*(m_H2_demand_ts - m_H2_offtake_ts_df)
+    
     mdl.end()
     
 

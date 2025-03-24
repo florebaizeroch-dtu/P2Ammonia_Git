@@ -140,7 +140,8 @@ class hpp_model_P2Ammonia(hpp_base):
                 eff_curve=eff_curve,
                 # life_h = life_h, 
                 ems_type=ems_type,
-                electrolyzer_eff_curve_type=electrolyzer_eff_curve_type
+                electrolyzer_eff_curve_type=electrolyzer_eff_curve_type, 
+                ptg_type = sim_pars['electrolyzer_eff_curve_name']
                 ),
             promotes_inputs=[
                 'price_t',
@@ -175,6 +176,11 @@ class hpp_model_P2Ammonia(hpp_base):
                 'penalty_factor_H2',
                 'penalty_factor_NH3',
                 'min_power_standby',
+                'LTP_AEC_add_power',
+                'HTP_AEC_add_power',
+                'PEM_add_power',
+                'LP_SOEC_add_power',
+                'HP_SOEC_add_power',
                 ],
             promotes_outputs=[
                 'total_curtailment'
@@ -269,8 +275,14 @@ class hpp_model_P2Ammonia(hpp_base):
         model.add_subsystem(
             'NH3_cost',
             NH3_cost(
+                ptg_type = sim_pars['electrolyzer_eff_curve_name'],
                 NH3_HB_capex_cost = sim_pars['NH3_HB_capex_cost'],
                 NH3_HB_opex_cost = sim_pars['NH3_HB_opex_cost'],
+                LTP_AEC_add_costs = sim_pars['LTP_AEC_add_costs'],
+                HTP_AEC_add_costs = sim_pars['HTP_AEC_add_costs'],
+                PEM_add_costs = sim_pars['PEM_add_costs'],
+                LP_SOEC_add_costs = sim_pars['LP_SOEC_add_costs'],
+                HP_SOEC_add_costs = sim_pars['HP_SOEC_add_costs'],
                 ASU_capex_cost = sim_pars['ASU_capex_cost'],
                 NH3_storage_capex_cost = sim_pars['NH3_storage_capex_cost'],
                 N_time = N_time,
@@ -429,7 +441,16 @@ class hpp_model_P2Ammonia(hpp_base):
         prob.set_val('penalty_factor_NH3', sim_pars['penalty_factor_NH3'])
         prob.set_val('H2_storage_eff', sim_pars['H2_storage_eff'])
         prob.set_val('NH3_storage_eff', sim_pars['NH3_storage_eff'])
-    
+
+        prob.set_val('LTP_AEC_add_power', sim_pars['LTP_AEC_add_power'])
+        prob.set_val('HTP_AEC_add_power', sim_pars['HTP_AEC_add_power'])
+        prob.set_val('PEM_add_power', sim_pars['PEM_add_power'])
+        prob.set_val('HP_SOEC_add_power', sim_pars['HP_SOEC_add_power'])
+        prob.set_val('LP_SOEC_add_power', sim_pars['LP_SOEC_add_power'])
+        
+        prob.set_val('P_elec_NH3_kg', sim_pars['P_elec_NH3_kg'])
+        prob.set_val('P_elec_N2_kg', sim_pars['P_elec_N2_kg'])
+
         self.prob = prob
         
         self.list_out_vars = [
@@ -457,7 +478,7 @@ class hpp_model_P2Ammonia(hpp_base):
             'PtG [MW]',
             'HSS [kg]',
             'NH3 [TDP]',
-            'NH3SS [kg]',
+            'NH3SS_kg [kg]',
             'Battery Energy [MWh]',
             'Battery Power [MW]',
             'Annual curtailment [GWh]',
@@ -487,7 +508,7 @@ class hpp_model_P2Ammonia(hpp_base):
             'cost_of_battery_P_fluct_in_peak_price_ratio',
             'ptg_MW [MW]',
             'HSS_kg [kg]',
-            'NH3SS [kg]',
+            'NH3SS_kg [kg]',
             ]   
     
     
@@ -583,13 +604,13 @@ class hpp_model_P2Ammonia(hpp_base):
         prob.set_val('ptg_MW', ptg_MW)
         prob.set_val('HSS_kg', HSS_kg)
         NH3_tpd = 4.08 * ptg_MW * self.eta_H2 
-        #NH3_tpd = 0   
+        # NH3_tpd = 0 
         prob.set_val('NH3_tpd', NH3_tpd)
         prob.set_val('NH3SS_kg', NH3SS_kg)        
         prob.set_val('b_P', b_P)
         prob.set_val('b_E', b_E)
-        prob.set_val('cost_of_battery_P_fluct_in_peak_price_ratio',cost_of_battery_P_fluct_in_peak_price_ratio)        
-        
+        prob.set_val('cost_of_battery_P_fluct_in_peak_price_ratio',cost_of_battery_P_fluct_in_peak_price_ratio)
+
         prob.run_model()
         
         self.prob = prob
@@ -704,13 +725,13 @@ class hpp_model_P2Ammonia(hpp_base):
         # ------------------------------
         # Plot 3: H2 and NH3 generation
         # ------------------------------
-        axs[0][1].plot(range(len(m_NH3_t[:n_hours])), m_NH3_t[:n_hours],  color='green', label='NH3 production')
+        #axs[0][1].plot(range(len(m_NH3_t[:n_hours])), m_NH3_t[:n_hours],  color='green', label='NH3 production')
         axs[0][1].plot(range(len(m_NH3_demand_t[:n_hours])), m_NH3_demand_t[:n_hours], color='green', linestyle = ':', label='NH3 demand')
-        axs[0][1].plot(range(len(m_NH3_offtake_t[:n_hours])), m_NH3_offtake_t[:n_hours], color='green', linestyle='--', label='NH3 offtake')
-        axs[0][1].plot(range(len(m_H2_t[:n_hours])), m_H2_t[:n_hours],color='purple', label='H2 production')
+        axs[0][1].plot(range(len(m_NH3_offtake_t[:n_hours])), m_NH3_offtake_t[:n_hours], color='green', label='NH3 offtake')
+        #axs[0][1].plot(range(len(m_H2_t[:n_hours])), m_H2_t[:n_hours],color='purple', label='H2 production')
         axs[0][1].plot(range(len(m_H2_demand_t[:n_hours])), m_H2_demand_t[:n_hours],color='purple', linestyle = ':', label='H2 demand')
-        axs[0][1].plot(range(len(m_H2_offtake_t[:n_hours])), m_H2_offtake_t[:n_hours], color='purple', linestyle='--', label='H2 offtake')
-        axs[0][1].plot(range(len(m_H2_to_NH3_t[:n_hours])), m_H2_offtake_t[:n_hours],  color='purple', linestyle='-.', label='H2 offtake')
+        axs[0][1].plot(range(len(m_H2_offtake_t[:n_hours])), m_H2_offtake_t[:n_hours], label='H2 offtake')
+        #axs[0][1].plot(range(len(m_H2_to_NH3_t[:n_hours])), m_H2_offtake_t[:n_hours],  color='purple', linestyle='-.', label='H2 offtake')
         axs[0][1].set_ylabel('H2 and NH3 production [kg]')
         axs[0][1].set_xlabel('Time [h]')
         axs[0][1].legend(loc='upper right')
@@ -757,6 +778,8 @@ class hpp_model_P2Ammonia(hpp_base):
         m_NH3_demand_t = prob.get_val('ems.m_NH3_demand_t_ext')
         #storage ammonia
         LoS_NH3_t = prob.get_val('ems.LoS_NH3_t')
+        #storage ammonia
+        LoS_H2_t = prob.get_val('ems.LoS_H2_t')
         #Heat production
         Q_t = prob.get_val('ems.Q_t')
         #Curtailment 
@@ -782,6 +805,7 @@ class hpp_model_P2Ammonia(hpp_base):
         df['m_NH3_offtake_t'] = m_NH3_offtake_t[:8760]
         df['m_NH3_demand_t'] = m_NH3_demand_t[:8760]
         df['LoS_NH3_t'] = LoS_NH3_t[:8760]
+        df['LoS_H2_t'] = LoS_H2_t[:8760]
         df['Q_t'] = Q_t[:8760]
         df['p_curtail_t'] = p_curtail_t[:8760]
         df.to_excel('Results_excel.xlsx')

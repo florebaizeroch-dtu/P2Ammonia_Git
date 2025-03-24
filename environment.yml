@@ -5,4 +5,5 @@ dependencies:
   - python=3.9
   - pip
   - smt=2.6
-
+  - numpy=1.26.4
+  - openmdao=3.35

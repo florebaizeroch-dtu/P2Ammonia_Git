@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------------------------
 # HPP Global
 # --------------------------------------------------------------------------------------------
-G_MW: 300 # Grid capacity
+G_MW: 50 # Grid capacity
 year: '2012' # Single representative year
 N_life: 25
 
@@ -62,7 +62,7 @@ altitude: null
 battery_energy_cost: 62_000 #[Euro/MWh]
 battery_power_cost: 16_000    # Power conversion system cost [Euro/MW]
 battery_BOP_installation_commissioning_cost: 80_000 # Electric BalanceOfPlant, instal+commission cost [Euro/MW]
-battery_control_system_cost: 2250  # Grid management control system cost[Euro/MW]
+battery_control_system_cost: 2_250  # Grid management control system cost[Euro/MW]
 battery_energy_onm_cost: 0 # [Euro/MWh]
 
 # EMS and Degradation parameters
@@ -82,7 +82,7 @@ peak_hr_quantile: 0.9 # An hour of peak price has prices above this quantile
 # --------------------------------------------------------------------------------------------
 # P2H parameters
 # --------------------------------------------------------------------------------------------
-price_H2: 0 #[Euro/kg]
+price_H2: 4 #[Euro/kg]
 H2_storage_eff: 0.9 #efficiency for hydrogen storage
 ptg_deg: 0.99 # Annual electrolyzer degradation (% per year)
 hhv_H2: 39.3 #[kWh/kg]
@@ -101,19 +101,48 @@ electrolyzer_eff_curve_name: 'HP-SOEC-WFS electrolyzer' # Efficiency curve for H
 electrolyzer_eff_curve_type: 'production'  # 'efficiency' or 'production' curves are supported. For efficiency curves also the high heat value, hhv nees to be set
 
 #COSTS 
-AEC_capex_cost : 825 #[EUR/kW]
-AEC_opex_cost : 35 #[EUR/kw/y]
+AEC_capex_cost: 825 #[EUR/kW]
+AEC_opex_cost: 35 #[EUR/kw/y]
 
-HTP_AEC_capex_cost : 1_300 #[EUR/kW]
-HTP_AEC_opex_cost : 155 #[EUR/kw/y]
-LTP_AEC_capex_cost : 825 #[EUR/kW]
-LTP_AEC_opex_cost : 35 #[EUR/kw/y]
-PEM_capex_cost : 975 #[EUR/kW]
-PEM_opex_cost : 20 #[EUR/kw/y]
-LP_SOEC_capex_cost : 1_300 #[EUR/kW]
-LP_SOEC_opex_cost : 155 #[EUR/kw/y]
-HP_SOEC_capex_cost : 1_560 #[EUR/kW]
-HP_SOEC_opex_cost : 186 #[EUR/kw/y]
+#2025
+# HTP_AEC_capex_cost: 1_300 #[EUR/kW]
+# HTP_AEC_opex_cost : 155   #[EUR/kw/y]
+# LTP_AEC_capex_cost : 825 #[EUR/kW]
+# LTP_AEC_opex_cost : 35 #[EUR/kw/y]
+# PEM_capex_cost : 975 #[EUR/kW]
+# PEM_opex_cost : 20 #[EUR/kw/y]
+# LP_SOEC_capex_cost : 1_300 #[EUR/kW]
+# LP_SOEC_opex_cost : 155 #[EUR/kw/y]
+# HP_SOEC_capex_cost : 1_560 #[EUR/kW]
+# HP_SOEC_opex_cost : 186 #[EUR/kw/y]
+
+#2030 
+HTP_AEC_capex_cost: 775 #[EUR/kW]
+HTP_AEC_opex_cost : 93 #[EUR/kw/y]
+LTP_AEC_capex_cost : 550 #[EUR/kW]
+LTP_AEC_opex_cost : 11 #[EUR/kw/y]
+PEM_capex_cost : 650 #[EUR/kW]
+PEM_opex_cost : 13 #[EUR/kw/y]
+LP_SOEC_capex_cost : 775 #[EUR/kW]
+LP_SOEC_opex_cost : 93 #[EUR/kw/y]
+HP_SOEC_capex_cost : 930 #[EUR/kW]
+HP_SOEC_opex_cost : 110 #[EUR/kw/y]
+
+
+#Additional Costs for electrolyzer - integration with H-B process 
+LTP_AEC_add_costs: 0 #[EUR/tpd]
+HTP_AEC_add_costs: -200 #[EUR/tpd]
+PEM_add_costs: 4 #[EUR/tpd]
+LP_SOEC_add_costs: -578 #[EUR/tpd]
+HP_SOEC_add_costs: -700 #[EUR/tpd]
+
+#Additional Power Consumption for electrolyzer - integration with H-B process 
+LTP_AEC_add_power: 0 #[kWh/kg_NH3]
+HTP_AEC_add_power : 0 #[kWh/kg_NH3]
+PEM_add_power : 0.079  #[kWh/kg_NH3]
+LP_SOEC_add_power : 0.244 #[kWh/kg_NH3]
+HP_SOEC_add_power : 0 #[kWh/kg_NH3]
+
 
 #old_costs
 #electrolyzer_capex_cost : 800_000  #[EUR/MW] This value is for PEM electrolyzers
@@ -142,9 +171,9 @@ NH3_storage_eff : 0.99 #[-]
 penalty_factor_NH3 : 0.05 # #[EUR/kg] Penalty for not meeting the ammonia demand
 
 #Costs
-NH3_HB_capex_cost : 350_000 #[EUR/tpd]
-NH3_HB_opex_cost : 10_500 #[EUR/tpd/y]
-ASU_capex_cost : 25_000 #[EUR/tdp]
+NH3_HB_capex_cost : 300_000 #[EUR/tpd]
+NH3_HB_opex_cost : 9_000 #[EUR/tpd/y]
+ASU_capex_cost : 27_000 #[EUR/tdp]
 NH3_storage_capex_cost: 800 #[EUR/kg]
 
 # --------------------------------------------------------------------------------------------
